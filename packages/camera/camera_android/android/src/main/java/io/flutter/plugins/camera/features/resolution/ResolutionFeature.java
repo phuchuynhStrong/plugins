@@ -38,7 +38,7 @@ public class ResolutionFeature extends CameraFeature<ResolutionPreset> {
    * @param cameraName Camera identifier of the camera for which to configure the resolution.
    */
   public ResolutionFeature(
-      CameraProperties cameraProperties, ResolutionPreset resolutionPreset, String cameraName) {
+          CameraProperties cameraProperties, ResolutionPreset resolutionPreset, String cameraName) {
     super(cameraProperties);
     this.currentSetting = resolutionPreset;
     try {
@@ -110,26 +110,30 @@ public class ResolutionFeature extends CameraFeature<ResolutionPreset> {
 
   @VisibleForTesting
   static Size computeBestPreviewSize(int cameraId, ResolutionPreset preset)
-      throws IndexOutOfBoundsException {
+          throws IndexOutOfBoundsException {
     if (preset.ordinal() > ResolutionPreset.high.ordinal()) {
       preset = ResolutionPreset.high;
     }
 
-//    if (Build.VERSION.SDK_INT >= 31) {
-        // Limiting the condition to Build.VERSION.SDK_INT == 31 && Build.VERSION.SDK_INT == 32 only
-       if (Build.VERSION.SDK_INT >= 31 && Build.VERSION.SDK_INT < 33) {
-     EncoderProfiles profile =
-         getBestAvailableCamcorderProfileForResolutionPreset(cameraId, preset);
-     List<EncoderProfiles.VideoProfile> videoProfiles = profile.getVideoProfiles();
-     EncoderProfiles.VideoProfile defaultVideoProfile = videoProfiles.get(0);
+    CamcorderProfile profile =
+            getBestAvailableCamcorderProfileForResolutionPresetLegacy(cameraId, preset);
+    return new Size(profile.videoFrameWidth, profile.videoFrameHeight);
 
-     return new Size(defaultVideoProfile.getWidth(), defaultVideoProfile.getHeight());
-   } else {
-      @SuppressWarnings("deprecation")
-      CamcorderProfile profile =
-          getBestAvailableCamcorderProfileForResolutionPresetLegacy(cameraId, preset);
-      return new Size(profile.videoFrameWidth, profile.videoFrameHeight);
-   }
+//    if (Build.VERSION.SDK_INT >= 31) {
+    // Limiting the condition to Build.VERSION.SDK_INT == 31 && Build.VERSION.SDK_INT == 32 only
+//       if (Build.VERSION.SDK_INT >= 31 && Build.VERSION.SDK_INT < 33) {
+//     EncoderProfiles profile =
+//         getBestAvailableCamcorderProfileForResolutionPreset(cameraId, preset);
+//     List<EncoderProfiles.VideoProfile> videoProfiles = profile.getVideoProfiles();
+//     EncoderProfiles.VideoProfile defaultVideoProfile = videoProfiles.get(0);
+//
+//     return new Size(defaultVideoProfile.getWidth(), defaultVideoProfile.getHeight());
+//   } else {
+//      @SuppressWarnings("deprecation")
+//      CamcorderProfile profile =
+//          getBestAvailableCamcorderProfileForResolutionPresetLegacy(cameraId, preset);
+//      return new Size(profile.videoFrameWidth, profile.videoFrameHeight);
+//   }
   }
 
   /**
@@ -144,14 +148,14 @@ public class ResolutionFeature extends CameraFeature<ResolutionPreset> {
    *     {@link ResolutionPreset}.
    */
   public static CamcorderProfile getBestAvailableCamcorderProfileForResolutionPresetLegacy(
-      int cameraId, ResolutionPreset preset) {
+          int cameraId, ResolutionPreset preset) {
     if (cameraId < 0) {
       throw new AssertionError(
-          "getBestAvailableCamcorderProfileForResolutionPreset can only be used with valid (>=0) camera identifiers.");
+              "getBestAvailableCamcorderProfileForResolutionPreset can only be used with valid (>=0) camera identifiers.");
     }
 
     switch (preset) {
-        // All of these cases deliberately fall through to get the best available profile.
+      // All of these cases deliberately fall through to get the best available profile.
       case max:
         if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_HIGH)) {
           return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH);
@@ -181,23 +185,23 @@ public class ResolutionFeature extends CameraFeature<ResolutionPreset> {
           return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW);
         } else {
           throw new IllegalArgumentException(
-              "No capture session available for current capture session.");
+                  "No capture session available for current capture session.");
         }
     }
   }
 
   @TargetApi(Build.VERSION_CODES.S)
   public static EncoderProfiles getBestAvailableCamcorderProfileForResolutionPreset(
-      int cameraId, ResolutionPreset preset) {
+          int cameraId, ResolutionPreset preset) {
     if (cameraId < 0) {
       throw new AssertionError(
-          "getBestAvailableCamcorderProfileForResolutionPreset can only be used with valid (>=0) camera identifiers.");
+              "getBestAvailableCamcorderProfileForResolutionPreset can only be used with valid (>=0) camera identifiers.");
     }
 
     String cameraIdString = Integer.toString(cameraId);
 
     switch (preset) {
-        // All of these cases deliberately fall through to get the best available profile.
+      // All of these cases deliberately fall through to get the best available profile.
       case max:
         if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_HIGH)) {
           return CamcorderProfile.getAll(cameraIdString, CamcorderProfile.QUALITY_HIGH);
@@ -228,12 +232,12 @@ public class ResolutionFeature extends CameraFeature<ResolutionPreset> {
         }
 
         throw new IllegalArgumentException(
-            "No capture session available for current capture session.");
+                "No capture session available for current capture session.");
     }
   }
 
   private void configureResolution(ResolutionPreset resolutionPreset, int cameraId)
-      throws IndexOutOfBoundsException {
+          throws IndexOutOfBoundsException {
     if (!checkIsSupported()) {
       return;
     }
@@ -246,12 +250,12 @@ public class ResolutionFeature extends CameraFeature<ResolutionPreset> {
 //      EncoderProfiles.VideoProfile defaultVideoProfile = videoProfiles.get(0);
 //      captureSize = new Size(defaultVideoProfile.getWidth(), defaultVideoProfile.getHeight());
 //    } else {
-      @SuppressWarnings("deprecation")
-      CamcorderProfile camcorderProfile =
-          getBestAvailableCamcorderProfileForResolutionPresetLegacy(cameraId, resolutionPreset);
-      recordingProfileLegacy = camcorderProfile;
-      captureSize =
-          new Size(recordingProfileLegacy.videoFrameWidth, recordingProfileLegacy.videoFrameHeight);
+    @SuppressWarnings("deprecation")
+    CamcorderProfile camcorderProfile =
+            getBestAvailableCamcorderProfileForResolutionPresetLegacy(cameraId, resolutionPreset);
+    recordingProfileLegacy = camcorderProfile;
+    captureSize =
+            new Size(recordingProfileLegacy.videoFrameWidth, recordingProfileLegacy.videoFrameHeight);
 //    }
 
     previewSize = computeBestPreviewSize(cameraId, resolutionPreset);
